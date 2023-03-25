@@ -18,6 +18,7 @@ export default function Home() {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+    const meta = metadata || await getVideoMetadata();
     const response = await fetch(
       `/api/download?url=${encodeURIComponent(videoUrl)}&format=${format}`
     );
@@ -28,9 +29,9 @@ export default function Home() {
       setConverted((list) => [
         ...list,
         {
-          filename: `${metadata?.title || videoUrl}.${format}`,
+          filename: `${meta?.title || videoUrl}.${format}`,
           media,
-          title: metadata?.title,
+          title: meta?.title,
         },
       ]);
       setVideoUrl("");
@@ -38,7 +39,7 @@ export default function Home() {
       setError(null);
     } else {
       setLoading(false);
-      setError("Metadata fetching error. Make sure the URL is valid.");
+      setError("Video fetching error. Make sure the URL is valid.");
     }
   }
 
@@ -51,6 +52,7 @@ export default function Home() {
         const metadata = await response.json();
         setMetadata(metadata);
         setError(null);
+        return metadata;
       } else {
         setError("Could not fetch video metadata. Make sure the URL is valid.");
       }
@@ -144,7 +146,7 @@ export default function Home() {
               </div>
               <button
                 type="submit"
-                disabled={loading || error || metadata == null}
+                disabled={loading || error}
                 className={classNames(
                   "w-full py-2 mb-4 px-4 bg-purple-600 flex flex-row text-white font-semibold rounded justify-center overflow-hidden xl:max-w-xs",
                   { "bg-gray-400": loading || error || metadata == null }
